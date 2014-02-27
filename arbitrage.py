@@ -1,14 +1,13 @@
-import bitstamp, btce
-
+import bitstamp, btce, bitfinex
+arb_thresh = 0.001
 def ComputeArb(Book1, Book2):
-	if(Book1['bids'][0] < Book2['bids'][0]):
+	if((Book1['bids'][0] + Book1['asks'][0]) < (Book2['bids'][0] + Book2['asks'][0]) ):
 		BuyBook = Book1
 		SellBook = Book2
 	else:
 		BuyBook = Book2
 		SellBook = Book1
 	
-	done = 0
 	ask_idx = 0
 	bid_idx = 0
 
@@ -23,7 +22,7 @@ def ComputeArb(Book1, Book2):
 	diff = SellPrice - BuyPrice
 	pct_arb = diff / SellPrice * 100
 	print pct_arb
-	while(done == 0):
+	while(pct_arb > arb_thresh):
 
 		diff = SellPrice - BuyPrice
 		pct_arb = diff / SellPrice * 100
@@ -48,18 +47,25 @@ def ComputeArb(Book1, Book2):
 		BuyPrice = BuyBook['asks'][ask_idx][0]
 		BuyAmount = BuyBook['asks'][ask_idx][1]
 
-		if(diff / SellPrice < 0.02):
-			done = 1
-	
 	print 'Total Arbitrage: '
 	print arb
 
-bitstamp = bitstamp.BitStamp();
-btce = btce.BTCE();
+bitstamp = bitstamp.BitStamp()
+btce = btce.BTCE()
+bitfinex = bitfinex.Bitfinex()
 
 #Get Books
-bitstamp.getOrderBook();
-btce.getOrderBook();
+bitstamp.getOrderBook()
+btce.getOrderBook()
+bitfinex.getOrderBook()
+
+print 'Bitstamp orderbook'
+bitstamp.printOrderBook()
+print 'BTCE orderbook'
+btce.printOrderBook()
+print 'Bitfinex orderbook'
+bitfinex.printOrderBook()
+
 
 #Compute Arbitrage depth
 BitStampBook = {
@@ -70,5 +76,14 @@ BTCEBook = {
 		'asks' : btce.asks,
 		'bids' : btce.bids
 		}
+BitfinexBook = {
+		'asks' : bitfinex.asks,
+		'bids' : bitfinex.bids
+		}
 
+print 'Arbitrage between Bitstamp and BTCE'
 ComputeArb(BitStampBook, BTCEBook)
+print 'Arbitrage between Bitstamp and Bitfinex'
+ComputeArb(BitStampBook, BitfinexBook)
+print 'Arbitrage between Bitfinex and BTCE'
+ComputeArb(BTCEBook, BitfinexBook)

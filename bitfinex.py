@@ -5,8 +5,9 @@ import time
 
 import keys
 
-class BitStamp:
+class Bitfinex:
 	'Class Handling all Bitfinex Data'
+	base_url = 'https://api.bitfinex.com/v1'
 	def __init__(self):
 		self.ticker = []
 		self.timestamp = 0
@@ -16,15 +17,52 @@ class BitStamp:
 		self.asks = []
 	def getTicker(self):
 		print "Getting Current Ticker"
-		url = 'https://www.bitstamp.net/api/ticker/'
+		url = Bitfinex.base_url + '/ticker/btcusd'
 		req = urllib2.Request(url)
 		res = urllib2.urlopen(req)
 
 		self.ticker = json.load(res)
-		self.timestamp = int(self.ticker['timestamp'])
-
-		print self.timestamp + 1
+		self.timestamp = int(float(self.ticker['timestamp']))
 		print self.ticker
+
+
+	def getOrderBook(self):
+		print "Getting Current Order Book from Bitfinex"
+		url = Bitfinex.base_url + '/book/btcusd'
+		req = urllib2.Request(url)
+		res = urllib2.urlopen(req)
+
+		self.orderbook = json.loads(res.read())
+		bids_unformatted = self.orderbook['bids']
+		asks_unformatted = self.orderbook['asks']
+
+		for bid in bids_unformatted:
+			price = float(bid['price'])
+			amount = float(bid['amount'])
+			timestamp = float(bid['timestamp'])
+			self.bids.append([price, amount, timestamp])
+
+		for ask in asks_unformatted:
+			price = float(ask['price'])
+			amount = float(ask['amount'])
+			timestamp = float(ask['timestamp'])
+			self.asks.append([price, amount, timestamp])
+
+		#self.bids = self.orderbook['bids']
+		#self.asks = self.orderbook['asks']
+
+
+	def printOrderBook(self):
+		#print self.orderbook
+		print 'Number of Bids: ' + str(len(self.bids))
+		print 'Number of Asks: ' + str(len(self.asks))
+
+		print 'Top Bid '
+		print self.bids[0]
+		print 'Top Ask '
+		print self.asks[0]
+
+	# Private Functions requiring authentication TODO
 	def getBalance(self):
 		url = 'https://www.bitstamp.net/api/balance/'
 		nonce = int(time.time())
@@ -44,36 +82,7 @@ class BitStamp:
 
 		self.balance = json.load(res)
 
-	def getOrderBook(self):
-		print "Getting Current Order Book from Bitstamp"
-		url = 'https://www.bitstamp.net/api/order_book/'
-		req = urllib2.Request(url)
-		res = urllib2.urlopen(req)
-
-		self.orderbook = json.loads(res.read())
-		bids_unformatted = self.orderbook['bids']
-		asks_unformatted = self.orderbook['asks']
-
-		for bid in bids_unformatted:
-			price = float(bid[0])
-			amount = float(bid[1])
-			self.bids.append([price, amount])
-
-		for ask in asks_unformatted:
-			price = float(ask[0])
-			amount = float(ask[1])
-			self.asks.append([price, amount])
-		#self.bids = self.orderbook['bids']
-		#self.asks = self.orderbook['asks']
-
-
-	def printOrderBook(self):
-		#print self.orderbook
-		print 'Number of Bids: ' + str(len(self.bids))
-		print 'Number of Asks: ' + str(len(self.asks))
-
-		print 'Top Bid '
-		print self.bids[0]
-		print 'Top Ask '
-		print self.asks[0]
-
+#bitfinex = Bitfinex()
+#bitfinex.getTicker()
+#bitfinex.getOrderBook()
+#bitfinex.printOrderBook()

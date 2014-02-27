@@ -36,6 +36,18 @@ class BTCE:
 		self.bids = self.orderbook['bids']
 		self.asks = self.orderbook['asks']
 
+
+	def printOrderBook(self):
+		#print self.orderbook
+		print 'Number of Bids: ' + str(len(self.bids))
+		print 'Number of Asks: ' + str(len(self.asks))
+
+		print 'Top Bid '
+		print self.bids[0]
+		print 'Top Ask '
+		print self.asks[0]
+
+	# Private Functions requiring authentication TODO
 	def getInfo(self):
 		print "Getting Account Balance"
 		url = 'https://btc-e.com/tapi'
@@ -57,16 +69,6 @@ class BTCE:
 		res = urllib2.urlopen(req)
 
 		print res.read()
-
-	def printOrderBook(self):
-		#print self.orderbook
-		print 'Number of Bids: ' + str(len(self.bids))
-		print 'Number of Asks: ' + str(len(self.asks))
-
-		print 'Top Bid '
-		print self.bids[0]
-		print 'Top Ask '
-		print self.asks[0]
 
 #btce = BTCE()
 #btce.getInfo()

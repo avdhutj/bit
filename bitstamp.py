@@ -22,26 +22,6 @@ class BitStamp:
 		self.ticker = json.load(res)
 		self.timestamp = int(self.ticker['timestamp'])
 
-		print self.timestamp + 1
-		print self.ticker
-	def getBalance(self):
-		url = 'https://www.bitstamp.net/api/balance/'
-		nonce = int(time.time())
-		message = str(nonce) + keys.BITSTAMP_CLIENT_ID + keys.BITSTAMP_API_KEY
-		signature = hmac.new(keys.BITSTAMP_API_SECRET_KEY, msg=message, digestmod=hashlib.sha256).hexdigest().upper()
-		params = {
-				'key' : keys.BITSTAMP_API_KEY,
-				'signature' : signature,
-				'nonce' : str(nonce)
-		}
-		data = urllib.urlencode(params)
-		req = urllib2.Request(url, data)
-		print req.get_method()
-		print req.get_full_url()
-		print req.get_data()
-		res = urllib2.urlopen(req)
-
-		self.balance = json.load(res)
 
 	def getOrderBook(self):
 		print "Getting Current Order Book from Bitstamp"
@@ -75,4 +55,25 @@ class BitStamp:
 		print self.bids[0]
 		print 'Top Ask '
 		print self.asks[0]
+
+	# Private Functions requiring authentication TODO
+	def getBalance(self):
+		url = 'https://www.bitstamp.net/api/balance/'
+		nonce = int(time.time())
+		message = str(nonce) + keys.BITSTAMP_CLIENT_ID + keys.BITSTAMP_API_KEY
+		signature = hmac.new(keys.BITSTAMP_API_SECRET_KEY, msg=message, digestmod=hashlib.sha256).hexdigest().upper()
+		params = {
+				'key' : keys.BITSTAMP_API_KEY,
+				'signature' : signature,
+				'nonce' : str(nonce)
+		}
+		data = urllib.urlencode(params)
+		req = urllib2.Request(url, data)
+		print req.get_method()
+		print req.get_full_url()
+		print req.get_data()
+		res = urllib2.urlopen(req)
+
+		self.balance = json.load(res)
+
 
