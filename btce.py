@@ -27,7 +27,7 @@ class BTCE:
 		self.timestamp = self.ticker['updated']
 
 	def getOrderBook(self):
-		print "Getting Current Order Book"
+		print "Getting Current Order Book from BTCE"
 		url = 'https://btc-e.com/api/2/btc_usd/depth'
 		req = urllib2.Request(url)
 		res = urllib2.urlopen(req)
@@ -68,10 +68,5 @@ class BTCE:
 		print self.bids[0]
 		print 'Top Ask '
 		print self.asks[0]
-
-btce = BTCE()
-btce.getTicker()
-btce.getOrderBook()
-btce.printOrderBook()
 
 

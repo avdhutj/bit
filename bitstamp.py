@@ -46,16 +46,27 @@ class BitStamp:
 		self.balance = json.load(res)
 
 	def getOrderBook(self):
-		print "Getting Current Order Book"
+		print "Getting Current Order Book from Bitstamp"
 		url = 'https://www.bitstamp.net/api/order_book/'
 		req = urllib2.Request(url)
 		res = urllib2.urlopen(req)
 
 		self.orderbook = json.loads(res.read())
-		self.bids = self.orderbook['bids']
-		self.asks = self.orderbook['asks']
+		bids_unformatted = self.orderbook['bids']
+		asks_unformatted = self.orderbook['asks']
 
-		print 'Got order book at ' + self.orderbook['timestamp']
+		for bid in bids_unformatted:
+			price = float(bid[0])
+			amount = float(bid[1])
+			self.bids.append([price, amount])
+
+		for ask in asks_unformatted:
+			price = float(ask[0])
+			amount = float(ask[1])
+			self.asks.append([price, amount])
+		#self.bids = self.orderbook['bids']
+		#self.asks = self.orderbook['asks']
+
 
 	def printOrderBook(self):
 		#print self.orderbook
@@ -66,11 +77,4 @@ class BitStamp:
 		print self.bids[0]
 		print 'Top Ask '
 		print self.asks[0]
-
-
-
-bitstamp = BitStamp()
-
-bitstamp.getOrderBook()
-bitstamp.printOrderBook()
 
