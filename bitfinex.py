@@ -2,10 +2,11 @@ import urllib, urllib2
 import json
 import hmac, hashlib
 import time
+
 import keys
 
 class BitStamp:
-	'Class Handling all Bitstamp Data'
+	'Class Handling all Bitfinex Data'
 	def __init__(self):
 		self.ticker = []
 		self.timestamp = 0
@@ -27,10 +28,10 @@ class BitStamp:
 	def getBalance(self):
 		url = 'https://www.bitstamp.net/api/balance/'
 		nonce = int(time.time())
-		message = str(nonce) + keys.BITSTAMP_CLIENT_ID + keys.BITSTAMP_API_KEY
-		signature = hmac.new(keys.BITSTAMP_API_SECRET_KEY, msg=message, digestmod=hashlib.sha256).hexdigest().upper()
+		message = str(nonce) + BitStamp.CLIENT_ID + BitStamp.API_KEY
+		signature = hmac.new(BitStamp.API_SECRET_KEY, msg=message, digestmod=hashlib.sha256).hexdigest().upper()
 		params = {
-				'key' : keys.BITSTAMP_API_KEY,
+				'key' : BitStamp.API_KEY,
 				'signature' : signature,
 				'nonce' : str(nonce)
 		}

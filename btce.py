@@ -2,11 +2,10 @@ import urllib, urllib2
 import json
 import hmac, hashlib
 import time
+import keys
 
 class BTCE:
 	'Class Handling all BTCE Data'
-	API_SECRET_KEY = '868cb4f680ded0354873927f1683a4b0f01cf6ab6a0b429ecf3893aceb6e1888'
-	API_KEY = '31BO9572-ZLGY6JHA-X928DFLN-P242VR0H-QRFVBW6H'
 	def __init__(self):
 		self.ticker = []
 		self.timestamp = 0
@@ -38,7 +37,7 @@ class BTCE:
 		self.asks = self.orderbook['asks']
 
 	def getInfo(self):
-		print "Getting Current Ticker"
+		print "Getting Account Balance"
 		url = 'https://btc-e.com/tapi'
 		nonce = int(time.time())
 		params = {
@@ -46,12 +45,12 @@ class BTCE:
 				'nonce' : nonce
 		}
 		params = urllib.urlencode(params)
-		H = hmac.new(BTCE.API_SECRET_KEY, digestmod=hashlib.sha512)
+		H = hmac.new(keys.BTCE_API_SECRET_KEY, digestmod=hashlib.sha512)
 		H.update(params)
 		sign = H.hexdigest()
 		headers = {
 				'Content-type' : 'application/x-www-form-urlencoded',
-				'Key' : BTCE.API_KEY,
+				'Key' : keys.BTCE_API_KEY,
 				'Sign' : sign
 		}
 		req = urllib2.Request(url, params, headers)
@@ -69,4 +68,5 @@ class BTCE:
 		print 'Top Ask '
 		print self.asks[0]
 
-
+#btce = BTCE()
+#btce.getInfo()
