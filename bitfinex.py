@@ -15,15 +15,18 @@ class Bitfinex:
 		self.balance = []
 		self.bids = []
 		self.asks = []
+		self.current = 0
 	def getTicker(self):
-		print "Getting Current Ticker"
+		'Getting Current Ticker'
 		url = Bitfinex.base_url + '/ticker/btcusd'
 		req = urllib2.Request(url)
 		res = urllib2.urlopen(req)
 
 		self.ticker = json.load(res)
 		self.timestamp = int(float(self.ticker['timestamp']))
-		print self.ticker
+		'print self.ticker'
+		self.current = float(self.ticker['last_price'])
+		
 
 
 	def getOrderBook(self):
@@ -84,5 +87,6 @@ class Bitfinex:
 
 #bitfinex = Bitfinex()
 #bitfinex.getTicker()
+#print bitfinex.current
 #bitfinex.getOrderBook()
 #bitfinex.printOrderBook()

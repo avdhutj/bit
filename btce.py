@@ -13,17 +13,19 @@ class BTCE:
 		self.balance = []
 		self.bids = []
 		self.asks = []
+		self.current = 0
 
 	def getTicker(self):
-		print "Getting Current Ticker"
+		'Getting Current Ticker'
 		url = 'https://btc-e.com/api/2/btc_usd/ticker'
 		req = urllib2.Request(url)
 		res = urllib2.urlopen(req)
 
 		data = json.load(res)
 		self.ticker = data['ticker']
-		print self.ticker
+		#print self.ticker
 		self.timestamp = self.ticker['updated']
+		self.current = self.ticker['last']
 
 	def getOrderBook(self):
 		print "Getting Current Order Book from BTCE"
@@ -71,4 +73,6 @@ class BTCE:
 		print res.read()
 
 #btce = BTCE()
+#btce.getTicker()
+#print btce.current
 #btce.getInfo()

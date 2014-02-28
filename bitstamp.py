@@ -13,14 +13,17 @@ class BitStamp:
 		self.balance = []
 		self.bids = []
 		self.asks = []
+
+		self.current = 0
 	def getTicker(self):
-		print "Getting Current Ticker"
+		'Getting Current Ticker'
 		url = 'https://www.bitstamp.net/api/ticker/'
 		req = urllib2.Request(url)
 		res = urllib2.urlopen(req)
 
 		self.ticker = json.load(res)
 		self.timestamp = int(self.ticker['timestamp'])
+		self.current = float(self.ticker['last'])
 
 
 	def getOrderBook(self):
@@ -76,4 +79,7 @@ class BitStamp:
 
 		self.balance = json.load(res)
 
+#bitstamp = BitStamp()
+#bitstamp.getTicker()
+#print bitstamp.current
 
