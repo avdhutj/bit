@@ -1,92 +1,159 @@
-import urllib, urllib2
+import urllib, urllib2, requests
 import json
-import hmac, hashlib
+import hmac, hashlib, base64
 import time
 
 import keys
+from exchange import Exchange
 
-class Bitfinex:
+class Bitfinex(Exchange):
 	'Class Handling all Bitfinex Data'
-	base_url = 'https://api.bitfinex.com/v1'
+	private_url = 'https://api.bitfinex.com/v1/'
+	public_url = 'https://api.bitfinex.com/v1/'
 	def __init__(self):
-		self.ticker = []
-		self.timestamp = 0
-		self.orderbook = []
-		self.balance = []
-		self.bids = []
-		self.asks = []
-		self.current = 0
+		Exchange.__init__(self)
+		self.name = 'Bitfinex'
+
 	def getTicker(self):
 		'Getting Current Ticker'
-		url = Bitfinex.base_url + '/ticker/btcusd'
+		url = Bitfinex.public_url + 'ticker/btcusd'
 		req = urllib2.Request(url)
 		res = urllib2.urlopen(req)
 
 		self.ticker = json.load(res)
 		self.timestamp = int(float(self.ticker['timestamp']))
-		'print self.ticker'
-		self.current = float(self.ticker['last_price'])
-		
+		self.ticker_price = float(self.ticker['last_price'])
 
 
 	def getOrderBook(self):
 		print "Getting Current Order Book from Bitfinex"
-		url = Bitfinex.base_url + '/book/btcusd'
+		url = Bitfinex.public_url + '/book/btcusd'
 		req = urllib2.Request(url)
 		res = urllib2.urlopen(req)
 
-		self.orderbook = json.loads(res.read())
-		bids_unformatted = self.orderbook['bids']
-		asks_unformatted = self.orderbook['asks']
+		orderbook = json.loads(res.read())
+		bids_unformatted = orderbook['bids']
+		asks_unformatted = orderbook['asks']
 
 		for bid in bids_unformatted:
 			price = float(bid['price'])
 			amount = float(bid['amount'])
 			timestamp = float(bid['timestamp'])
-			self.bids.append([price, amount, timestamp])
+			self.orderBook.bids.append([price, amount, timestamp])
 
 		for ask in asks_unformatted:
 			price = float(ask['price'])
 			amount = float(ask['amount'])
 			timestamp = float(ask['timestamp'])
-			self.asks.append([price, amount, timestamp])
-
-		#self.bids = self.orderbook['bids']
-		#self.asks = self.orderbook['asks']
-
-
-	def printOrderBook(self):
-		#print self.orderbook
-		print 'Number of Bids: ' + str(len(self.bids))
-		print 'Number of Asks: ' + str(len(self.asks))
-
-		print 'Top Bid '
-		print self.bids[0]
-		print 'Top Ask '
-		print self.asks[0]
+			self.orderBook.asks.append([price, amount, timestamp])
 
 	# Private Functions requiring authentication TODO
 	def getBalance(self):
-		url = 'https://www.bitstamp.net/api/balance/'
-		nonce = int(time.time())
-		message = str(nonce) + BitStamp.CLIENT_ID + BitStamp.API_KEY
-		signature = hmac.new(BitStamp.API_SECRET_KEY, msg=message, digestmod=hashlib.sha256).hexdigest().upper()
-		params = {
-				'key' : BitStamp.API_KEY,
-				'signature' : signature,
-				'nonce' : str(nonce)
+		nonce = str(long(time.time() * 100000))
+		payload = {
+			'request' : '/v1/balances',
+			'nonce' : nonce,
+			'options' : {}
 		}
-		data = urllib.urlencode(params)
-		req = urllib2.Request(url, data)
-		print req.get_method()
-		print req.get_full_url()
-		print req.get_data()
-		res = urllib2.urlopen(req)
+		payload_json = json.dumps(payload)
+		payload_str = str(base64.b64encode(payload_json))
 
-		self.balance = json.load(res)
+		H = hmac.new(keys.BITFINEX_API_SECRET_KEY, payload_str, hashlib.sha384)
+		sign = H.hexdigest()
 
-#bitfinex = Bitfinex()
-#bitfinex.getTicker()
-#print bitfinex.current
-#bitfinex.getOrderBook()
-#bitfinex.printOrderBook()
+		headers = {
+				'X-BFX-APIKEY' : keys.BITFINEX_API_KEY,
+				'X-BFX-PAYLOAD' : base64.b64encode(payload_json),
+				'X-BFX-SIGNATURE' : sign
+		}
+
+		res = requests.get(Bitfinex.private_url + 'balances', data={}, headers=headers)
+
+		if(res.status_code != 200):
+			print 'Error getting Account Balance'
+			pass
+
+		result = res.json()
+
+		#Format Result in Account Balance
+		for wallet in result:
+			if wallet['type'] == 'exchange' and wallet['currency'] == 'usd':
+				self.balance.usd = float(wallet['amount'])
+				continue
+			if wallet['type'] == 'exchange' and wallet['currency'] == 'btc':
+				self.balance.btc = float(wallet['amount'])
+
+			self.balance.timestamp = time.time()
+
+	def trade(self, typ, rate, amount):
+		nonce = str(long(time.time() * 100000))
+		payload = {
+			'request' : '/v1/order/new',
+			'nonce' : nonce,
+			'symbol' : 'btcusd',
+			'amount' : amount,
+			'price' : rate,
+			'exchange' : 'bitfinex',
+			'side' : typ,
+			'type' : 'exchange market'
+		}
+		payload_json = json.dumps(payload)
+		payload_str = str(base64.b64encode(payload_json))
+
+		H = hmac.new(keys.BITFINEX_API_SECRET_KEY, payload, hashlib.sha384)
+		sign = H.hexdigest()
+
+		headers = {
+				'X-BFX-APIKEY' : keys.BITFINEX_API_KEY,
+				'X-BFX-PAYLOAD' : base64.b64encode(payload_json),
+				'X-BFX-SIGNATURE' : sign
+		}
+
+		res = requests.post(Bitfinex.private_url + 'order/new', data={}, headers=headers)
+
+		if(res.status_code != 200 ):
+			print 'Error placing the trade'
+			pass
+
+		result = res.json()
+
+
+	def myTrades(self):
+
+		nonce = str(long(time.time() * 100000))
+		payload = {
+			'request' : '/v1/mytrades',
+			'nonce' : nonce,
+			'symbol' : 'btcusd',
+			'timestamp' : 0
+		}
+		payload_json = json.dumps(payload)
+		payload_str = str(base64.b64encode(payload_json))
+
+		H = hmac.new(keys.BITFINEX_API_SECRET_KEY, payload_str, hashlib.sha384)
+		sign = H.hexdigest()
+
+		headers = {
+		'X-BFX-APIKEY' : keys.BITFINEX_API_KEY,
+		'X-BFX-PAYLOAD' : base64.b64encode(payload_json),
+		'X-BFX-SIGNATURE' : sign
+		}
+
+		res = requests.post(Bitfinex.private_url + 'mytrades', data={}, headers=headers)
+
+		print 'Resopone Code: ' + str(res.status_code)
+		print 'Response Content ' + str(res.content)
+
+
+if __name__ == '__main__':
+	bitfinex = Bitfinex()
+	#bitfinex.getTicker()
+	#print bitfinex.ticker_price
+
+	#bitfinex.getOrderBook()
+	#bitfinex.orderBook.printOrderBook()
+
+	#bitfinex.getBalance()
+	#bitfinex.balance.printBalance()
+
+	#bitfinex.myTrades()

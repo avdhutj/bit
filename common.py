@@ -1,12 +1,25 @@
 class AccountBalance:
 	'Class containing account balances for all exchanges'
 	def __init__(self):
-		self.usd_balance = 0
-		self.btc_balance = 0
+		self.usd = 0
+		self.btc = 0
 		self.open_orders = 0
 		self.timestamp = 0
 	def printBalance(self):
-		print 'USD Balance: ' + str(self.usd_balance)
-		print 'BTC Balance: ' + str(self.btc_balance)
+		print 'USD Balance: ' + str(self.usd)
+		print 'BTC Balance: ' + str(self.btc)
 		print 'Open Orders: ' + str(self.open_orders)
 		print 'Timestamp: ' + str(self.timestamp)
+
+class OrderBook:
+	def __init__(self):
+		self.bids = []
+		self.asks = []
+
+	def printOrderBook(self):
+		print 'Number of Bids: ' + str(len(self.bids))
+		print 'Number of Asks: ' + str(len(self.asks))
+		print 'Top Bid '
+		print self.bids[0]
+		print 'Top Ask '
+		print self.asks[0]

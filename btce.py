@@ -2,24 +2,20 @@ import urllib, urllib2
 import json
 import hmac, hashlib
 import time
+from exchange import Exchange
 from common import AccountBalance
 import keys
 
-class BTCE:
+class BTCE(Exchange):
 	'Class Handling all BTCE Data'
+	public_url = 'https://btc-e.com/api/2/'
 	private_url = 'https://btc-e.com/tapi'
 	def __init__(self):
-		self.ticker = []
-		self.timestamp = 0
-		self.orderbook = []
-		self.balance = AccountBalance();
-		self.bids = []
-		self.asks = []
-		self.current = 0
-
+		Exchange.__init__(self)
+		self.name = 'Btce'
 	def getTicker(self):
 		'Getting Current Ticker'
-		url = 'https://btc-e.com/api/2/btc_usd/ticker'
+		url = BTCE.public_url + 'btc_usd/ticker'
 		req = urllib2.Request(url)
 		res = urllib2.urlopen(req)
 
@@ -27,29 +23,20 @@ class BTCE:
 		self.ticker = data['ticker']
 		#print self.ticker
 		self.timestamp = self.ticker['updated']
-		self.current = self.ticker['last']
+		self.ticker_price = self.ticker['last']
 
 	def getOrderBook(self):
 		print "Getting Current Order Book from BTCE"
-		url = 'https://btc-e.com/api/2/btc_usd/depth'
+		url = BTCE.public_url + 'btc_usd/depth'
 		req = urllib2.Request(url)
 		res = urllib2.urlopen(req)
 
 		data = json.load(res)
-		self.orderbook = data
-		self.bids = self.orderbook['bids']
-		self.asks = self.orderbook['asks']
 
+		orderbook = data
 
-	def printOrderBook(self):
-		#print self.orderbook
-		print 'Number of Bids: ' + str(len(self.bids))
-		print 'Number of Asks: ' + str(len(self.asks))
-
-		print 'Top Bid '
-		print self.bids[0]
-		print 'Top Ask '
-		print self.asks[0]
+		self.orderBook.bids = data['bids']
+		self.orderBook.asks = data['asks']
 
 	# Private Functions requiring authentication TODO
 	def getBalance(self):
@@ -75,11 +62,11 @@ class BTCE:
 
 		res = json.load(res)
 
-		self.balance.usd_balance = res['return']['funds']['usd']
-		self.balance.btc_balance = res['return']['funds']['btc']
+		self.balance.usd = res['return']['funds']['usd']
+		self.balance.btc = res['return']['funds']['btc']
 		self.balance.open_orders = res['return']['open_orders']
-		self.balance.open_orders = res['return']['server_time']
-	
+		self.balance.timestamp = res['return']['server_time']
+
 	def trade(self, typ, rate, amount):
 
 		nonce = int(time.time())
@@ -113,6 +100,8 @@ class BTCE:
 
 if __name__ == "__main__":
 	btce = BTCE()
+	btce.getOrderBook()
+	btce.orderBook.printOrderBook()
 	#btce.getBalance()
 	#btce.balance.printBalance()
-	btce.trade('buy', 600, 0.1)
+	#btce.trade('buy', 600, 0.1)
