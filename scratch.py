@@ -9,4 +9,5 @@ bot = Bot()
 bot.addExchange(bfinex)
 bot.addExchange(btce)
 
+print 'Running Bot'
 bot.run()
