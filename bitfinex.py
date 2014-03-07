@@ -153,7 +153,7 @@ if __name__ == '__main__':
 	#bitfinex.getOrderBook()
 	#bitfinex.orderBook.printOrderBook()
 
-	#bitfinex.getBalance()
-	#bitfinex.balance.printBalance()
+	bitfinex.getBalance()
+	bitfinex.balance.printBalance()
 
 	#bitfinex.myTrades()
