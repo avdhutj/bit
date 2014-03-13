@@ -11,10 +11,12 @@ class Exchange:
     self.orderBook = OrderBook()
     self.timestamp = 0
     self.ticker_price = 0
+    self.trading_fee = 0
+    self.transfer_fee = 0
   def getTicker(self):
     print 'Base Class, Should be called from child class'
     pass
-  def getOrderBook(self):
+  def getOrderBook(self, limit=50):
     pass
   #Private Functions
   def getBalance(self):

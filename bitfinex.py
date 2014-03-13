@@ -13,6 +13,8 @@ class Bitfinex(Exchange):
 	def __init__(self):
 		Exchange.__init__(self)
 		self.name = 'Bitfinex'
+		self.trading_fee = 0.0015
+		self.transfer_fee = 0
 
 	def getTicker(self):
 		'Getting Current Ticker'
@@ -25,9 +27,8 @@ class Bitfinex(Exchange):
 		self.ticker_price = float(self.ticker['last_price'])
 
 
-	def getOrderBook(self):
-		print "Getting Current Order Book from Bitfinex"
-		url = Bitfinex.public_url + '/book/btcusd'
+	def getOrderBook(self, limit=50):
+		url = Bitfinex.public_url + '/book/btcusd?limit_bids=' + str(limit) + '&limit_asks=' + str(limit)
 		req = urllib2.Request(url)
 		res = urllib2.urlopen(req)
 
@@ -91,8 +92,8 @@ class Bitfinex(Exchange):
 			'request' : '/v1/order/new',
 			'nonce' : nonce,
 			'symbol' : 'btcusd',
-			'amount' : amount,
-			'price' : rate,
+			'amount' : str(amount),
+			'price' : str(rate),
 			'exchange' : 'bitfinex',
 			'side' : typ,
 			'type' : 'exchange market'
@@ -100,7 +101,7 @@ class Bitfinex(Exchange):
 		payload_json = json.dumps(payload)
 		payload_str = str(base64.b64encode(payload_json))
 
-		H = hmac.new(keys.BITFINEX_API_SECRET_KEY, payload, hashlib.sha384)
+		H = hmac.new(keys.BITFINEX_API_SECRET_KEY, payload_str, hashlib.sha384)
 		sign = H.hexdigest()
 
 		headers = {
@@ -112,8 +113,9 @@ class Bitfinex(Exchange):
 		res = requests.post(Bitfinex.private_url + 'order/new', data={}, headers=headers)
 
 		if(res.status_code != 200 ):
-			print 'Error placing the trade'
-			pass
+			print 'Error placing the trade in Bitfinex'
+			print res.content
+			return
 
 		result = res.json()
 
@@ -150,8 +152,11 @@ if __name__ == '__main__':
 	#bitfinex.getTicker()
 	#print bitfinex.ticker_price
 
-	#bitfinex.getOrderBook()
+	# bitfinex.getOrderBook()
 	#bitfinex.orderBook.printOrderBook()
+
+	# bitfinex.trade('buy', bitfinex.orderBook.asks[0][0], 0.01)
+	# bitfinex.trade('sell', bitfinex.orderBook.bids[0][0], 0.01)
 
 	bitfinex.getBalance()
 	bitfinex.balance.printBalance()

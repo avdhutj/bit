@@ -23,3 +23,13 @@ class OrderBook:
 		print self.bids[0]
 		print 'Top Ask '
 		print self.asks[0]
+
+	class Trade:
+		def __init__(self):
+			self.exhange = ''
+			self.typ = ''
+			self.timestamp = ''
+			self.order_id = ''
+			self.amount = 0 #Btc amount
+			self.rate = 0
+		
