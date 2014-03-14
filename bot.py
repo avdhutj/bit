@@ -2,15 +2,33 @@ import time
 from exchange import Exchange
 import withdrawal
 import keys
+import logging
 
 class Bot:
   def __init__(self):
     self.exchanges = []
+    self.logger = logging.getLogger('BitBot')
+    self.logger.setLevel(logging.DEBUG)
+
+    fh = logging.FileHandler('BitBot.log')
+    fh.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    fh.setFormatter(formatter)
+
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    ch.setFormatter(formatter)
+
+    self.logger.addHandler(fh)
+    self.logger.addHandler(ch)
 
   def addExchange(self, exchange):
     self.exchanges.append(exchange)
 
-  def executeArb(self, bExc, sExc, acceptable_arb_pct):
+  def executeArb(self, bExc, sExc, acceptable_arb_pct, live=False):
+
+    if(live == False):
+      return
 
     #Go through the orderbook to find trades till we have sold all the btc's in the
     # selling exchange or we have exhausted money in our buying exchange
@@ -90,7 +108,8 @@ class Bot:
 
     if btc_transacted > 0.05 :
       #Call selnium script
-      print 'call selenium scripts with btc_transacted: ' + str(btc_transacted)
+      # print 'call selenium scripts with btc_transacted: ' + str(btc_transacted)
+      self.logger.info('call selenium scripts with btc_transacted: %f', btc_transacted)
 
       if(bExc.name == 'Bitfinex'):
         withdrawal.bitfinex_withdrawal(keys.BTCE_DEPOSIT_ADDRESS, btc_transacted)
@@ -101,9 +120,12 @@ class Bot:
   def run(self):
     if(len(self.exchanges) < 2):
       print 'Atleast add 2 exchanges to the bot'
+      return
 
-    for exchange in self.exchanges:
-      exchange.getBalance()
+
+
+    # for exchange in self.exchanges:
+    #   exchange.getBalance()
 
     # self.exchanges[0].balance.usd = 600.0
     # self.exchanges[1].balance.usd = 10.0
@@ -112,19 +134,21 @@ class Bot:
 
     while True:
 
-      print '***** Starting Iteration at ' + str(time.time()) + ' *********************'
+      # print '***** Starting Iteration at ' + str(time.time()) + ' *********************'
+      self.logger.debug('Starting Iteration')
+
+      # logger.info('Starting Iteration')
 
       try:
 
-        for exchange in self.exchanges:
-          exchange.getTicker()
-          print 'Ticker Price for ' + exchange.name + ' ' + str(exchange.ticker_price)
+        # for exchange in self.exchanges:
+        #   exchange.getTicker()
+        #   print 'Ticker Price for ' + exchange.name + ' ' + str(exchange.ticker_price)
 
         for exchange in self.exchanges:
           exchange.getBalance()
-          print 'Exchange: ' + exchange.name
-          print 'USD balance: ' + str(exchange.balance.usd)
-          print 'BTC balance: ' + str(exchange.balance.btc)
+          self.logger.debug('Balance %s %f %f', exchange.name, exchange.balance.usd, exchange.balance.btc)
+
 
         # Forward Transfer
         usd_balance_ratio = self.exchanges[0].balance.usd / self.exchanges[1].balance.usd
@@ -148,14 +172,12 @@ class Bot:
         elif usd_balance_ratio > 2:
           acceptable_arb_pct = 2.0
 
-
-        # self.get_acceptable_arb_pct(balance_ratio, acceptable_arb_pct, acceptable_arb_pct)
-
-        print 'Btce Buy ---> Bitfinex Sell ARB PCT: ' + str(acceptable_arb_pct)
+        #print 'Btce Buy ---> Bitfinex Sell ARB PCT: ' + str(acceptable_arb_pct)
+        self.logger.debug('Btce Buy ---> Bitfinex Sell ARB PCT: %f', acceptable_arb_pct)
 
         # Execute trades
         # Buying in 0 and selling in 1
-        self.executeArb(self.exchanges[0], self.exchanges[1], acceptable_arb_pct)
+        self.executeArb(self.exchanges[0], self.exchanges[1], acceptable_arb_pct, live)
 
 
         # Reverse Transfer
@@ -180,13 +202,13 @@ class Bot:
         elif usd_balance_ratio > 2:
           acceptable_arb_pct = -1.0
 
-        print 'Bitfinex Buy ---> Btce Sell ARB PCT: ' + str(acceptable_arb_pct)
+        self.logger.debug('Bitfinex Buy ---> Btce Sell ARB PCT: %f', acceptable_arb_pct)
         # Execute trades
         # Buying in 1 and selling in 0
-        self.executeArb(self.exchanges[1], self.exchanges[0], acceptable_arb_pct)
+        self.executeArb(self.exchanges[1], self.exchanges[0], acceptable_arb_pct, live)
       except:
         pass
 
 
-      print 'Sleeping...'
+      self.logger.debug('Sleeping')
       time.sleep(2)
