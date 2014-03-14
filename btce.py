@@ -5,9 +5,10 @@ import time
 from exchange import Exchange
 from common import AccountBalance
 import keys
+import logging
 
 class BTCE(Exchange):
-	'Class Handling all BTCE Data'
+	# 'Class Handling all BTCE Data'
 	public_url = 'https://btc-e.com/api/2/'
 	private_url = 'https://btc-e.com/tapi'
 	def __init__(self):
@@ -16,6 +17,8 @@ class BTCE(Exchange):
 		self.trading_fee = 0.002
 		self.transfer_fee = 0.001
 		self.nonce = 1
+
+		self.logger = logging.getLogger('BitBot.BTCE')
 
 		#Find the correct nonce parameter
 		print 'Computing correct nonce parameter'
@@ -49,7 +52,8 @@ class BTCE(Exchange):
 				self.nonce = int(n)
 
 	def getTicker(self):
-		'Getting Current Ticker'
+		# 'Getting Current Ticker'
+		self.logger.debug('Getting Ticker')
 		url = BTCE.public_url + 'btc_usd/ticker'
 		req = urllib2.Request(url)
 		res = urllib2.urlopen(req)
@@ -60,6 +64,7 @@ class BTCE(Exchange):
 		self.ticker_price = self.ticker['last']
 
 	def getOrderBook(self, limit=50):
+		self.logger.debug('Getting Ordebook')
 		url = BTCE.public_url + 'btc_usd/depth/' + str(limit)
 		req = urllib2.Request(url)
 		res = urllib2.urlopen(req)
@@ -74,6 +79,7 @@ class BTCE(Exchange):
 	# Private Functions requiring authentication TODO
 	def getBalance(self):
 
+		self.logger.debug('Getting Balance')
 		#nonce = long(time.time() * 100000)
 		# nonce = int(time.time())
 
@@ -94,23 +100,31 @@ class BTCE(Exchange):
 				'Sign' : sign
 		}
 		req = urllib2.Request(BTCE.private_url, params, headers)
-		res = urllib2.urlopen(req)
 
-		res = json.load(res)
+		try:
+			res = urllib2.urlopen(req)
 
-		if (res['success'] == 0):
-			print '*** Error Getting Accout balance *** '
-			print res['error']
-			return
+			res = json.load(res)
 
-		self.balance.usd = res['return']['funds']['usd']
-		self.balance.btc = res['return']['funds']['btc']
-		self.balance.open_orders = res['return']['open_orders']
-		self.balance.timestamp = res['return']['server_time']
+			if (res['success'] == 0):
+				# print '*** Error Getting Accout balance *** '
+				self.logger.warn('Error getting account balance')
+				self.logger.info(res['error'])
+				return
 
-		# time.sleep(1) #For nonce param update
+			self.balance.usd = res['return']['funds']['usd']
+			self.balance.btc = res['return']['funds']['btc']
+			self.balance.open_orders = res['return']['open_orders']
+			self.balance.timestamp = res['return']['server_time']
+
+			# self.logger.info('Got BTCE Balance: USD: %d, BTC: %d', self.balance.usd, self.balance.btc)
+		except:
+			self.logger.warn('Error getting account balance')
+			raise
 
 	def trade(self, typ, rate, amount):
+
+		self.logger.debug('Trading')
 
 		#nonce = long(time.time() * 100000)
 		# nonce = int(time.time())
@@ -135,18 +149,24 @@ class BTCE(Exchange):
 				'Sign' : sign
 		}
 		req = urllib2.Request(BTCE.private_url, params, headers)
-		res = urllib2.urlopen(req)
+		try:
+			res = urllib2.urlopen(req)
 
-		res = json.load(res)
+			res = json.load(res)
 
-		if(res['success'] == 0):
-			print 'Could not complete the transaction in BTCE'
-			print res
-		# else:
-		# 	print 'Suceess'
-		# 	print res
+			if(res['success'] == 0):
+				self.logger.warn('Trade Failed - %s, %d, %d', typ, rate, amount)
+				self.logger.info(res['error'])
+				# print 'Could not complete the transaction in BTCE'
+				# print res
+			else:
+				self.logger.info('Trade Success - %s, %d, %d', typ, rate, amount)
+				# print 'Suceess'
+				# print res
+		except Exception:
+			self.logger.warn('Trade Failed - %s, %d, %d', typ, rate, amount)
+			raise
 
-		#time.sleep(1) # For nonce param update
 
 if __name__ == "__main__":
 	btce = BTCE()
