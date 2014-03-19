@@ -79,7 +79,7 @@ class BTCE(Exchange):
 	# Private Functions requiring authentication TODO
 	def getBalance(self):
 
-		self.logger.debug('Getting Balance')
+		# self.logger.debug('Getting Balance')
 		#nonce = long(time.time() * 100000)
 		# nonce = int(time.time())
 
@@ -109,7 +109,7 @@ class BTCE(Exchange):
 			if (res['success'] == 0):
 				# print '*** Error Getting Accout balance *** '
 				self.logger.warn('Error getting account balance')
-				self.logger.info(res['error'])
+				#self.logger.info(res['error'])
 				return
 
 			self.balance.usd = res['return']['funds']['usd']
@@ -117,7 +117,7 @@ class BTCE(Exchange):
 			self.balance.open_orders = res['return']['open_orders']
 			self.balance.timestamp = res['return']['server_time']
 
-			# self.logger.info('Got BTCE Balance: USD: %d, BTC: %d', self.balance.usd, self.balance.btc)
+			# self.logger.info('Got BTCE Balance: USD: %f, BTC: %f', self.balance.usd, self.balance.btc)
 		except:
 			self.logger.warn('Error getting account balance')
 			raise
@@ -155,16 +155,16 @@ class BTCE(Exchange):
 			res = json.load(res)
 
 			if(res['success'] == 0):
-				self.logger.warn('Trade Failed - %s, %d, %d', typ, rate, amount)
-				self.logger.info(res['error'])
+				self.logger.warn('Trade Failed - %s, %f, %f', typ, rate, amount)
+				# self.logger.info(res['error'])
 				# print 'Could not complete the transaction in BTCE'
 				# print res
 			else:
-				self.logger.info('Trade Success - %s, %d, %d', typ, rate, amount)
+				self.logger.info('Trade Success - %s, %f, %f', typ, rate, amount)
 				# print 'Suceess'
 				# print res
 		except Exception:
-			self.logger.warn('Trade Failed - %s, %d, %d', typ, rate, amount)
+			self.logger.warn('Trade Failed - %s, %f, %f', typ, rate, amount)
 			raise
 
 

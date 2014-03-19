@@ -60,7 +60,8 @@ class Bitfinex(Exchange):
 	# Private Functions requiring authentication
 	def getBalance(self):
 
-		self.logger.debug('Getting Balance')
+		# self.logger.debug('Getting Balance')
+
 		nonce = str(long(time.time() * 100000))
 		payload = {
 			'request' : '/v1/balances',
@@ -85,7 +86,7 @@ class Bitfinex(Exchange):
 
 			if(res.status_code != 200):
 				self.logger.warn('Error getting account balance')
-				self.logger.info(res.content)
+				#self.logger.info(res.content)
 				# print 'Error getting Account Balance'
 				pass
 
@@ -136,17 +137,17 @@ class Bitfinex(Exchange):
 			res = requests.post(Bitfinex.private_url + 'order/new', data={}, headers=headers)
 
 			if(res.status_code != 200 ):
-				self.logger.warn('Trade Failed - %s, %d, %d', typ, rate, amount)
-				self.logger.info(res.content)
+				self.logger.warn('Trade Failed - %s, %f, %f', typ, rate, amount)
+				# self.logger.info(res.content)
 				# print 'Error placing the trade in Bitfinex'
 				# print res.content
 				return
 			else :
-				self.logger.info('Trade Success - %s, %d, %d', typ, rate, amount)
+				self.logger.info('Trade Success - %s, %f, %f', typ, rate, amount)
 
 			result = res.json()
 		except:
-			self.logger.warn('Trade Failed - %s, %d, %d', typ, rate, amount)
+			self.logger.warn('Trade Failed - %s, %f, %f', typ, rate, amount)
 			raise
 
 	def myTrades(self):

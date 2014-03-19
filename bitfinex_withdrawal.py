@@ -47,7 +47,7 @@ class BitfinexWithdrawal:
     self.setup()
     self.login()
     self.withdraw(withdrawal_address, amount)
-    self.clear()
+    # self.clear()
 
 if __name__ == '__main__':
   bitfinex_withdrawal(keys.BTCE_DEPOSIT_ADDRESS, 0.0)

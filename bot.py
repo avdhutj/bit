@@ -45,9 +45,12 @@ class Bot:
       pct_arb =  sExc.orderBook.bids[0][0]*(1-sExc.trading_fee) - bExc.orderBook.asks[0][0]*(1-bExc.trading_fee)
       pct_arb = (pct_arb / bExc.orderBook.asks[0][0]) * 100.0
 
-      #print 'Current Arb ' + str(pct_arb) + '%'
+      # print 'Current Arb ' + str(pct_arb) + '%'
+      self.logger.debug('Current Arb: %f', pct_arb)
 
       if pct_arb > acceptable_arb_pct:
+
+        self.logger.info('Executing trade - Buying at %s : Selling at %s - Current Arb: %f', bExc.name, sExc.name, pct_arb)
 
         if bExc.orderBook.asks[0][1] < sExc.orderBook.bids[0][1]:
 
@@ -130,7 +133,7 @@ class Bot:
     # self.exchanges[0].balance.usd = 600.0
     # self.exchanges[1].balance.usd = 10.0
 
-    live = False
+    live = True
 
     while True:
 
