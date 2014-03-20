@@ -3,8 +3,6 @@ from bitfinex import Bitfinex
 from btce import BTCE
 from bot import Bot
 
-import btcelogin
-
 bfinex = Bitfinex()
 btce = BTCE()
 
